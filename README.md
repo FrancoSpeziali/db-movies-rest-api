@@ -1,12 +1,23 @@
-# Node Movies Rest API
+# Mongoose Movies 🎥
 
 In this assignment you will be expected to write an API for connecting to a movie database
 
-## Assignments
+This project assumes you've already had experience with:
 
-For the backend part of this assignment, you are expected to write your code in the file `server.js`
+> - Mongoose Schemas
+> - Mongoose references
+> - Building routes and endpoints in Express
 
-## Assignment 1 - Sample data
+## Tasks
+
+Before starting these tasks, run the command `npm install` or `npm i`
+
+This will automatically install the following packages:
+- express
+- mongoose
+- dotenv
+
+## Task 1 - Sample data
 
 Before we can begin, we will load a sample dataset to work with.
 
@@ -35,83 +46,212 @@ After this, you should have some new databases / collections:
 
 We will be using the `sample_mflix` database.
 
-## Assignment 2 - Connect to your database
+## Task 2 - Write a .env file
 
-1. Use the dotenv package to load the process.env variables from your .env file
+Note: For this assignment, we already assume you have a MongoDB server, and know how to access your credentials.
 
-> Note: Connect to the `sample_mflix` database
+1. Create a file in your root folder called `.env`. This file will contain all the connection information for accessing your database.
 
-2. In the file `server.js`, connect to your server
+2. Copy and paste the text in the file `.env.example`, into your `.env` file.
 
-3. Check the connection
+3. For the key `DB_NAME`, use `sample_mflix`. This will ensure that Mongoose will try and use the existing sample dataset you previously set up
 
-## Assignment 3 - Comments Schema & Model
+4. For the other keys, fill in the details as provided to you by your MongoDB service.
 
-Unfortunately the sample datasets do not come with Models or Schemas, so we must build our own to interact with these databases / collections.
+   - DB_HOST=
+   - DB_USER=
+   - DB_PASS=
+   - DB_NAME=sample_mflix
 
-1. Using the MongoDB viewing tool (or another similar tool), examine the data in the `comments` collection. What MongoDB data types are being used?
+   `mongodb+srv://<DB_USER>:<DB_PASS>@<DB_HOST>/<DB_NAME>?retryWrites=true&w=majority`
 
-2. Create a `CommentSchema` schema for the collection `comments`
+## Task 3 - Preparing our server to receive requests
 
-3. Create a `CommentModel` model for the collection `comments`
+In the next tasks, we will create a REST API so that clients can connect and perform actions on our server. To do this, we must first begin with a few steps:
 
-> Hint: You may use `String`, `Date`, `Number`, `Boolean` as your data types
+1. Install the npm package `cors`
 
-## Assignment 4 - Movies Schema & Model
+2. Import and add `cors` to your middleware stack. This will prevent the dreaded same origin policy error in your browser.
+
+> Remember to run your middleware before any of your routes!
+
+3. Run `express.json()` as middleware. This will allow any JSON sent for example, with a POST request, to be correctly read by the server.
+
+## Task 4 - Movies Schema & Model
 
 Unfortunately the sample datasets do not come with Models or Schemas, so we must build our own to interact with these databases / collections.
 
 1. Using the MongoDB viewing tool (or another similar tool), examine the data in the `movies` collection. What MongoDB data types are being used?
 
-2. Create a `MovieSchema` schema for the collection `movies`
+2. Create a folder `models`
 
-3. Create a `MovieModel` model for the collection `movies`
+3. In this folder, create a `MovieSchema` schema for the collection `movies`
+
+4. Create a model `Movie` for your schema `MovieSchema`
 
 > Hint: You may use `String`, `Date`, `Number`, `Boolean` as your data types
 
-## Assignment 5 - 'Movies' by id endpoint
+> Hint: Some values maybe held inside an array, for example a string of arrays would be represented as `[String]`
 
-We will create an endpoint to load specific movie data, based on the movie id
+## Task 5 - Comments Schema & Model
 
-1. Create an endpoint `/movieById`. This will be a `get` endpoint. The endpoint should expect a parameter, the movie id.
+Unfortunately the sample datasets do not come with Models or Schemas, so we must build our own to interact with these databases / collections.
+
+1. Using the MongoDB Compass viewing tool (or another similar tool), examine the data in the `comments` collection. What MongoDB data types are being used?
+
+2. In your `/models` folder, create a `CommentSchema` schema for the collection `comments`
+
+3. One of the fields you will see is `movie_id`. This is reference to another collection
+   - For this field, use the `ref` property, to link to the Movie collection
+   - For this field, use the `type` property to link to `mongoose.Schema.Types.ObjectId` (or similar)
+
+4. Create a model `Comment` for your schema `CommentSchema`
+
+> Hint: You may use `String`, `Date`, `Number`, `Boolean` as your data types
+
+## Task 6 - Creating the Movies route
+
+The `mflix` database has quite a few collections. We can imagine that if we were to fully develop our application, it could get quite big.
+
+Let's try and keep things organised from the start.
+
+Create a Route `movies`
+
+1. Create the file `movies.js` in the folder `routes`
+   - import `express`
+   - create the `router` instance from `express.Router()`
+   - export your `router` instance
+   
+2. Import your route into `server.js`
+   - Use `app.use()` to use the movies router you imported
+   - Use the path `/movies`
+
+## Task 7 - Endpoint to search for movies by id
+
+We will create an endpoint to load specific movie data, based on the movie `id`
+
+1. Create an endpoint `/searchById` in your `movies` router. This will be a `GET` endpoint. The endpoint should expect a parameter, the movie `id`.
 
 > Hint: In your endpoint callback you will need to use `request.params` to get the request parameters
 
-2. Use your `MoviesModel` to find the movie by id, then:
+2. Import and use your `Movie` model to find the movie by `id`, then:
     - If found, return a status of `200` and the resulting movie
     - If not found, return a status of `404` and an appropriate message
-    
-## Assignment 6 - 'Movies' search endpoint
+   
+> Hint: You can use the method `findById()`
+
+## Task 8 - Endpoint to search for movies by title
 
 We will create an endpoint to search for movie data
 
-1. Create an endpoint `/movieSearch`. This will be a `get` endpoint
+1. Create an endpoint `/searchByTitle` in your `movies` router. This will be a `GET` endpoint
     - The endpoint should expect a parameter, the movie `title` to search by
     - The endpoint should expect a second parameter, the number of results to limit to search to
 
 > Hint: In your endpoint callback you will need to use `request.params` to get the request parameters
 
-2. Use your `MoviesModel` to find the movie by searching in the `title` field. It should:
+2. Use your `Movie` model to find the movie by searching in the `title` field. It should:
     - Limit the results using the `limit()` method. If no value is supplied, default to `10`
     - If found, return a status of `200` and the resulting movies
     - If not found, return a status of `404` and an appropriate message
 
-## Assignment 7 - 'Comments' endpoint
+> Hint: Here you must use the `find()` method
+
+## Task 9 - Creating the Comments route
+
+Create a Route `comments`
+
+1. Create the file `comments.js` in the folder `routes`
+   - import `express`
+   - create the `router` instance from `express.Router()`
+   - export your `router` instance
+
+2. Import your route into `server.js`
+   - Use `app.use()` to use the comments router you imported
+   - Use the path `/comments`
+
+## Task 10 - Endpoint to search for comments by id
 
 We will create an endpoint to load the comments data
 
-1. Create an endpoint `/comments`. This will be a `get` endpoint. The endpoint should expect a parameter, the comment id.
+1. Create an endpoint `/searchById` in your `comments` router. This will be a `GET` endpoint. The endpoint should expect a parameter, the comment `id`.
 
 > Hint: In your endpoint callback you will need to use `request.params` to get the request parameters
 
-2. Use your `CommentModel` to find the comment by id, then:
+2. Use your `Comment` model to find the comment by id, then:
     - If found, return a status of `200` and the resulting comment
     - If not found, return a status of `404` and an appropriate message
-    
-## Assignment 8 - Populating our comments
+   
+## Task 11 - Endpoint to search and update movies by id
+
+We would like to satisfy the U in the CRUD criteria
+
+We will create an endpoint to update specific movie data, based on the movie `id`
+
+1. Create an endpoint `/update` in your `movies` router. This will be a `PATCH` endpoint.
+   - The endpoint should expect a parameter, the movie `id`
+
+> Hint: In your endpoint callback you will need to use `request.params` to get the request parameters
+
+   - The endpoint should also expect a JSON object with details to update the movie document
+   - Only update the following fields:
+     - plot
+     - title
+
+> Hint: In your endpoint callback you will need to use `request.body` to get the request body
+
+2. Use your `Movie` model to find the movie by `id`, then:
+   - If found, return a status of `200` and the resulting movie
+   - If not found, return a status of `404` and an appropriate message
+
+> Hint: You can use the method `findByIdAndUpdate()`
+
+## Task 12 - Endpoint to search and update comments by id
+
+We will create an endpoint to update specific comment text, based on the comment `id`
+
+Do not allow the user to update any other details, other than the text!
+
+1. Create an endpoint `/update` in your `comments` router. This will be a `PATCH` endpoint.
+   - The endpoint should expect a parameter, the comment `id`
+   - The endpoint should expect a JSON object with 1 property, the new text to update the comment
+
+2. Use your `Comment` model to find the movie by `id`, then:
+   - If found, return a status of `200` and the resulting updated comment text
+   - If not found, return a status of `404` and an appropriate message
+
+> Hint: You can use the method `findByIdAndUpdate()`
+
+## Task 13 - Endpoint to search and delete movies by id
+
+We will create an endpoint to search for and delete a movie based on the movie `id`
+
+1. Create an endpoint `/delete` in your `movies` router. This will be a `DELETE` endpoint. The endpoint should expect a parameter, the movie `id`.
+
+2. Use your `Movie` model to find the movie by `id`, then:
+   - If found, return a status of `200` and an appropriate message
+   - If not found, return a status of `404` and an appropriate message
+   
+> Hint: You can use the method `findByIdAndDelete()`
+
+## Task 14 - Endpoint to search and delete comments by id
+
+We will create an endpoint to search for and delete a comment based on the comment `id`
+
+1. Create an endpoint `/delete` in your `movies` router. This will be a `DELETE` endpoint. The endpoint should expect a parameter, the comment `id`.
+
+2. Use your `Comment` model to find the comment by `id`, then:
+   - If found, return a status of `200` and an appropriate message
+   - If not found, return a status of `404` and an appropriate message
+
+> Hint: You can use the method `findByIdAndDelete()`
+
+## Task 15 - Populating our comments
+
+Our `comments` collection uses a reference to get data from the `movies` collection.
 
 We will update our comments endpoint to return the populated movie data
 
-1. Update the `/comments` endpoint to use the `populate()` method on the `movie_id` field.
+1. Update the `/searchById` endpoint to use the `populate()` method on the `movie_id` field.
 
-2. Test that your endpoint gives you the correct result.
+2. Test that your endpoint gives you the correct result
